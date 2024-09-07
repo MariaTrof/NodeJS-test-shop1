@@ -10,7 +10,7 @@ CREATE TABLE shops (
     name VARCHAR(100) NOT NULL
 );
 -- Таблица для остатков товаров
-CREATE TABLE stock (
+CREATE TABLE stocks (
     id SERIAL PRIMARY KEY,
     product_id INT REFERENCES products(id) ON DELETE CASCADE,
     shop_id INT REFERENCES shops(id) ON DELETE CASCADE,
@@ -19,7 +19,7 @@ CREATE TABLE stock (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- Таблица для истории действий с товарами
-CREATE TABLE action_history (
+CREATE TABLE action_histories (
     id SERIAL PRIMARY KEY,
     product_id INT REFERENCES products(id) ON DELETE CASCADE,
     shop_id INT REFERENCES shops(id) ON DELETE CASCADE,
@@ -42,7 +42,7 @@ INSERT INTO shops (id, name)
 VALUES ('14', 'Shop One'),
     ('23', 'Top Shop'),
     ('34', 'Shop Wood');
-INSERT INTO stock (
+INSERT INTO stocks (
         id,
         product_id,
         shop_id,
@@ -59,4 +59,5 @@ VALUES ('15000', '1', '14', '10', '2', '20.02.2020'),
 
 
     --
-    ALTER TABLE action_history ADD COLUMN stock_id INT REFERENCES stock(id) ON DELETE CASCADE;
+    ALTER TABLE action_histories ADD COLUMN stock_id INT REFERENCES stocks(id) ON DELETE CASCADE;
+ALTER TABLE stocks RENAME COLUMN created_at TO createdAt;

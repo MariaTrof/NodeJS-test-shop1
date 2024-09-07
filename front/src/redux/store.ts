@@ -1,16 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
-import StockSlice from "./StockSlice";
-import ShopSlice from "./ShopSlice";
-import ProductSlice from "./ProductSlice";
-import ActionSlice from "./ActionSlice";
+//import StockSlice from "./StockSlice";
+//import ShopSlice from "./ShopSlice";
+//import ProductSlice from "./ProductSlice";
+//import ActionSlice from "./ActionSlice";
 
 const store = configureStore({
   reducer: {
-    shop: ShopSlice,
-    product: ProductSlice,
-    stock: StockSlice,
-    action: ActionSlice,
+  //  shop: ShopSlice,
+  //  product: ProductSlice,
+  //  stock: StockSlice,
+  //  action: ActionSlice,
   },
 });
 

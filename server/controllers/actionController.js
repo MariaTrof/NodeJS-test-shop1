@@ -8,17 +8,12 @@ class ActionHistoryController
   {
     try
     {
-      let {
-        shop_id,
-        plu,
-        action,
-        page = 1,
-        limit = 10,
-      } = req.query;
+      let { shop_id, product_id, action_date, action, page = 1, limit = 10 } = req.query;
 
       page = +page || 1; // Преобразование в число
       limit = +limit || 10; // Преобразование в число
       const offset = ( page - 1 ) * limit;
+      console.log( offset, page, limit );
 
       let whereConditions = {};
       if ( shop_id )
@@ -29,24 +24,31 @@ class ActionHistoryController
       {
         whereConditions.action = action;
       }
-
-      const include = [];
-      if ( plu )
+      if ( product_id )
       {
-        include.push( {
-          model: Product,
-          where: { plu },
-          required: true,
-        } );
+        whereConditions.product_id = product_id;
+      }
+      if ( action_date )
+      {
+        whereConditions.action_date = action_date;
       }
 
+      console.log( whereConditions );
+      console.log( action );
+
       const { count, rows } = await ActionHistory.findAndCountAll( {
-
-
+        where: whereConditions,
+        include: [
+          { model: Product, as: "product" },
+          { model: Shop, as: "shop" },
+        ],
         limit,
         offset,
-        order: [ [ "action_date", "DESC" ] ],
+        order: [ [ "action_date", "DESC" ] ], // Обратите внимание, порядок сохраняется
       } );
+
+      console.log( count, rows );
+      console.log( "Запрос: ", whereConditions );
 
       return res.json( {
         totalItems: count,

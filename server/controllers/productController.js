@@ -45,7 +45,7 @@ class ProductController {
         offset,
         include: [
           { model: Stock, as: "stocks" },
-          { model: ActionHistory, as: "action_history" },
+          { model: ActionHistory, as: "action_histories" },
         ],
       });
 
@@ -67,7 +67,7 @@ class ProductController {
         where: { id },
         include: [
           { model: Stock, as: "stocks" },
-          { model: ActionHistory, as: "action_history" },
+          { model: ActionHistory, as: "action_histories" },
         ],
       });
       if (!product) {

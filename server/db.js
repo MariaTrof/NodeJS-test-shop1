@@ -1,20 +1,17 @@
 const { Sequelize } = require("sequelize");
+const fs = require( 'fs' );
+const path = require( 'path' );
+
+
+const logger = fs.createWriteStream( path.join( __dirname, 'sequelize.log' ), { flags: 'a' } );
 
 const sequelize = new Sequelize("nodejs_shop", "postgres", "12345", {
   dialect: "postgres",
   host: "localhost",
   port: 5432,
+  logging: ( msg ) => logger.write( `${ msg }\n` ),
 });
 
-const testConnection = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("Успешное соединение с базой данных!");
-  } catch (error) {
-    console.error("Невозможно установить соединение с базой данных:", error);
-  }
-};
 
-testConnection();
 
 module.exports = sequelize; 

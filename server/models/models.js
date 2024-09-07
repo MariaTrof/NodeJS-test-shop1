@@ -1,117 +1,148 @@
-const sequelize = require("../db");
-const { DataTypes } = require("sequelize");
+const { Model, DataTypes } = require( "sequelize" );
+const sequelize = require( "../db" );
 
-const Product = sequelize.define(
-  "products",
+class Product extends Model { }
+Product.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     plu: { type: DataTypes.STRING, unique: true },
     name: { type: DataTypes.STRING },
   },
   {
-    timestamps: false, // Отключить автоматическое добавление createdAt и updatedAt
+    sequelize,
+    modelName: "products",
+    timestamps: false,
   }
 );
 
-const Shop = sequelize.define(
-  "shops",
+class Shop extends Model { }
+Shop.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING },
   },
   {
+    sequelize,
+    timestamps: false ,
+    modelName: "shops",
     timestamps: false,
   }
 );
 
-const Stock = sequelize.define("stock", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  product_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: "products",
-      key: "id",
+class Stock extends Model { }
+Stock.init(
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    product_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "products",
+        key: "id",
+      },
+    },
+    shop_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "shops",
+        key: "id",
+      },
+    },
+    quantity_on_shelf: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    quantity_in_order: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   },
-  shop_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: "shops",
-      key: "id",
+  {
+    sequelize,
+    timestamps: false,
+    modelName: "stocks",
+    hooks: {
+      afterCreate: () => console.log( "Таблица stocks была создана" ),
     },
-  },
-  quantity_on_shelf: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  quantity_in_order: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-});
+  }
+);
 
-const ActionHistory = sequelize.define("action_history", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  product_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: "products",
-      key: "id",
+class ActionHistory extends Model { }
+ActionHistory.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
-  },
-  shop_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: "shops",
-      key: "id",
+    product_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "products",
+        key: "id",
+      },
     },
+    shop_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "shops",
+        key: "id",
+      },
+    },
+    action: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    action_date: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    stock_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "stocks",
+        key: "id",
+      },
+    }
   },
-  action: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  action_date: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-});
+  {
+    sequelize,
+    timestamps: false,
+    modelName: "action_histories",
+    hooks: {
+      afterCreate: () => console.log( "Таблица action_histories была создана" ),
+    },
+  }
+);
+
 
 //определяем Элиасы (alias), которые потом вставляем в контроллер
 //так же здесь находятся ассоциации в соотвествии с таблицами и их взаимосвязами
 
-Stock.hasMany(ActionHistory, { foreignKey: "stock_id", as: "action_history" });
+Stock.hasMany(ActionHistory, { foreignKey: "stock_id", as: "action_histories" });
 ActionHistory.belongsTo(Stock, { foreignKey: "stock_id", as: "stock" });
 
 Product.hasMany(Stock, { foreignKey: "product_id", as: "stocks" });
 Stock.belongsTo(Product, { foreignKey: "product_id", as: "product" });
-//stock и stocks - это два разных Элиаса(псевдонима), это не является ошибкой,
-//т.к. используются они для разного - один stock по id, а stocks для идентификации остатков в магазине
+
 Shop.hasMany(Stock, { foreignKey: "shop_id", as: "stocks" });
 Stock.belongsTo(Shop, { foreignKey: "shop_id", as: "shop" });
 
 Product.hasMany(ActionHistory, {
   foreignKey: "product_id",
-  as: "action_history",
+  as: "action_histories",
 });
 ActionHistory.belongsTo(Product, { foreignKey: "product_id", as: "product" });
 
-Shop.hasMany(ActionHistory, { foreignKey: "shop_id", as: "action_history" });
+Shop.hasMany(ActionHistory, { foreignKey: "shop_id", as: "action_histories" });
 ActionHistory.belongsTo(Shop, { foreignKey: "shop_id", as: "shop" });
 
 module.exports = {
