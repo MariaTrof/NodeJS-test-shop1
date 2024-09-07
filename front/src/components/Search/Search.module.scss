@@ -1,0 +1,56 @@
+.container{
+  background-color: inherit;
+gap: 10;
+
+
+ 
+} 
+.form {
+      border-radius: 30px;
+      border: 2px solid white;
+      overflow: hidden;
+      padding: 2px;
+      display: flex;
+
+      
+      
+     
+    }
+.icon{
+   width: 35px;
+    height: 35px;
+    background-color: inherit;
+    
+}
+.input {
+    color: white;
+          background-color: inherit;
+        border: none;
+        font-size: 14px;
+        padding: 15px 5px;
+        outline:none;
+      }
+      .input::placeholder {
+  color: white; /* Устанавливаем цвет placeholder на белый */
+  opacity: 0.7; /* Опционально - можно настроить прозрачность */
+}
+.text{
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 100;
+    color:white;
+}
+ .btn {
+        font-size: 12px;
+  background-color: white;
+        border-radius: 30px;
+        border: none;
+        padding: 5px 10px;
+      }
+      .btn:hover {
+        cursor: pointer;
+        background-color: rgb(122, 192, 246);
+      }
+      .icon:hover{
+            background-color: rgb(122, 192, 246);
+      }
