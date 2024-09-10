@@ -1,12 +1,12 @@
-const { Model, DataTypes } = require( "sequelize" );
-const sequelize = require( "../db" );
+const { Model, DataTypes } = require("sequelize");
+const sequelize = require("../db");
 
-class Product extends Model { }
+class Product extends Model {}
 Product.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    plu: { type: DataTypes.STRING, unique: true },
-    name: { type: DataTypes.STRING },
+    plu: { type: DataTypes.STRING, unique: true, allowNull: true },
+    name: { type: DataTypes.STRING, allowNull: true }, 
   },
   {
     sequelize,
@@ -15,27 +15,25 @@ Product.init(
   }
 );
 
-class Shop extends Model { }
+class Shop extends Model {}
 Shop.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING },
+    name: { type: DataTypes.STRING, allowNull: true }, 
   },
   {
     sequelize,
-    timestamps: false ,
     modelName: "shops",
     timestamps: false,
   }
 );
 
-class Stock extends Model { }
+class Stock extends Model {}
 Stock.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     product_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
         model: "products",
         key: "id",
@@ -43,7 +41,6 @@ Stock.init(
     },
     shop_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
         model: "shops",
         key: "id",
@@ -67,12 +64,12 @@ Stock.init(
     timestamps: false,
     modelName: "stocks",
     hooks: {
-      afterCreate: () => console.log( "Таблица stocks была создана" ),
+      afterCreate: () => console.log("Таблица stocks была создана"),
     },
   }
 );
 
-class ActionHistory extends Model { }
+class ActionHistory extends Model {}
 ActionHistory.init(
   {
     id: {
@@ -82,7 +79,7 @@ ActionHistory.init(
     },
     product_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "products",
         key: "id",
@@ -90,7 +87,7 @@ ActionHistory.init(
     },
     shop_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "shops",
         key: "id",
@@ -98,7 +95,6 @@ ActionHistory.init(
     },
     action: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     action_date: {
       type: DataTypes.DATE,
@@ -106,28 +102,30 @@ ActionHistory.init(
     },
     stock_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "stocks",
         key: "id",
       },
-    }
+    },
   },
   {
     sequelize,
     timestamps: false,
     modelName: "action_histories",
     hooks: {
-      afterCreate: () => console.log( "Таблица action_histories была создана" ),
+      afterCreate: () => console.log("Таблица action_histories была создана"),
     },
   }
 );
 
-
 //определяем Элиасы (alias), которые потом вставляем в контроллер
 //так же здесь находятся ассоциации в соотвествии с таблицами и их взаимосвязами
 
-Stock.hasMany(ActionHistory, { foreignKey: "stock_id", as: "action_histories" });
+Stock.hasMany(ActionHistory, {
+  foreignKey: "stock_id",
+  as: "action_histories",
+});
 ActionHistory.belongsTo(Stock, { foreignKey: "stock_id", as: "stock" });
 
 Product.hasMany(Stock, { foreignKey: "product_id", as: "stocks" });

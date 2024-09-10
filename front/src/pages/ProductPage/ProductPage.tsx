@@ -8,14 +8,28 @@ interface Product {
   plu: string;
 }
 
+interface Stock {
+  id: number;
+  product_id: number;
+  shop_id: number;
+  quantity_on_shelf: number;
+  quantity_in_order: number;
+}
+
+interface Shop {
+  id: number;
+  name: string;
+}
+
 const ProductPage: FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
-
 
   const updateLimit = () => {
     const width = window.innerWidth;
@@ -24,7 +38,7 @@ const ProductPage: FC = () => {
     } else if (width >= 1200) {
       setLimit(4);
     } else if (width >= 900) {
-      setLimit(3); 
+      setLimit(3);
     } else {
       setLimit(2);
     }
@@ -41,7 +55,7 @@ const ProductPage: FC = () => {
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/products?limit=${limit}&page=${currentPage}`
+        `http://localhost:5005/api/products?limit=${limit}&page=${currentPage}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -60,8 +74,44 @@ const ProductPage: FC = () => {
     }
   };
 
+  const fetchStocks = async () => {
+    try {
+      const response = await fetch(`http://localhost:5005/api/stock`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setStocks(data);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Неизвестная ошибка");
+      }
+    }
+  };
+
+  const fetchShops = async () => {
+    try {
+      const response = await fetch(`http://localhost:5005/api/shops`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setShops(data);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Неизвестная ошибка");
+      }
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchStocks();
+    fetchShops();
   }, [currentPage, limit]);
 
   if (isLoading) {
@@ -74,29 +124,31 @@ const ProductPage: FC = () => {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Список товаров</h1>
+      <div className={styles.title}>Список продуктов</div>
       <div className={styles.list}>
-        {products.map((product) => (
-          <li key={product.id} className={styles.product_box}>
-            <div className={styles.box}>
-              <div className={styles.name}>{product.name}</div>
-              <div className={styles.description}>
-                <div className={styles.text}>PLU: {product.plu}</div>
-                <div className={styles.text}>ID: {product.id}</div>
+        {products.map((product) => {
+          const productStock = stocks.find(stock => stock.product_id === product.id);
+          const shop = productStock ? shops.find(shop => shop.id === productStock.shop_id) : null;
+          return (
+            <li key={product.id} className={styles.product_box}>
+              <div className={styles.box}>
+                <div className={styles.name}>{product.name}</div>
+                <div className={styles.description}>
+                  <div className={styles.text}>PLU: {product.plu}</div>
+                  <div className={styles.text}>ID: {product.id}</div>
+                  {productStock && shop && (
+                    <>
+                      <div className={styles.text}>Магазин ID: {shop.id}</div>
+                      <div className={styles.text}>Название магазина: {shop.name}</div>
+                      <div className={styles.text}>Количество на полке: {productStock.quantity_on_shelf}</div>
+                      <div className={styles.text}>Количество в заказе: {productStock.quantity_in_order}</div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className={styles.box}>
-              <div className={styles.name}>Stock:</div>
-              <div className={styles.description}>
-                <div className={styles.text}>stock in shelf: {product.plu}</div>
-                <div className={styles.text}>stock in order: {product.id}</div>
-              </div>
-              <div>Change quantity</div>
-              <button className={styles.btn}>+</button>
-              <button className={styles.btn}>-</button>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </div>
       <div className={styles.pagination}>
         <button

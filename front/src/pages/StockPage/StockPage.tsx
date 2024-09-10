@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import styles from "./StockPage.module.scss";
-import "./StockSkeleton";
-import StockSkeleton from './StockSkeleton';
+import { FC, useEffect, useState } from "react";
+import StockPageSkeleton from "./StockPageSkeleton";
+import styles from "./ProductPage.module.scss";
+
+interface Product {
+  id: number;
+  name: string;
+  plu: string;
+}
 
 interface Stock {
   id: number;
@@ -11,9 +16,16 @@ interface Stock {
   quantity_in_order: number;
 }
 
-const StockPage: React.FC = () => {
+interface Shop {
+  id: number;
+  name: string;
+}
+
+const StockPage: FC = () => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [stocks, setStocks] = useState<Stock[]>([]);
- const [isLoading, setIsLoading] = useState(true);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -26,31 +38,30 @@ const StockPage: React.FC = () => {
     } else if (width >= 1200) {
       setLimit(4);
     } else if (width >= 900) {
-      setLimit(3); 
+      setLimit(3);
     } else {
       setLimit(2);
     }
   };
 
-
   useEffect(() => {
-        updateLimit();
+    updateLimit();
     window.addEventListener("resize", updateLimit);
     return () => {
       window.removeEventListener("resize", updateLimit);
     };
   }, []);
 
-  const fetchStocks = async () => {
+  const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/stock?limit=${limit}&page=${currentPage}`
+        `http://localhost:5005/api/products?limit=${limit}&page=${currentPage}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
-      setStocks(data.items);
+      setProducts(data.items);
       setTotalPages(data.totalPages);
     } catch (error) {
       if (error instanceof Error) {
@@ -63,48 +74,83 @@ const StockPage: React.FC = () => {
     }
   };
 
+  const fetchStocks = async () => {
+    try {
+      const response = await fetch(`http://localhost:5005/api/stock`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setStocks(data);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Неизвестная ошибка");
+      }
+    }
+  };
 
+  const fetchShops = async () => {
+    try {
+      const response = await fetch(`http://localhost:5005/api/shops`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setShops(data);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Неизвестная ошибка");
+      }
+    }
+  };
 
   useEffect(() => {
+    fetchProducts();
     fetchStocks();
+    fetchShops();
   }, [currentPage, limit]);
 
   if (isLoading) {
-    return <StockSkeleton />;
+    return <StockPageSkeleton />;
   }
 
   if (error) {
     return <div>Error: {error}</div>;
   }
 
-
-
   return (
-    <div>
-      <h1>Список Остатков</h1>
-      <div>
-        <div>
-          <div>
-            <div>ID</div>
-            <div>Продукт ID</div>
-            <div>Магазин ID</div>
-            <div>Количество на полке</div>
-            <div>Количество в заказе</div>
-          </div>
-        </div>
-        <div>
-          {stocks.map(stock => (
-            <div key={stock.id}>
-              <div>{stock.id}</div>
-              <div>{stock.product_id}</div>
-              <div>{stock.shop_id}</div>
-              <div>{stock.quantity_on_shelf}</div>
-              <div>{stock.quantity_in_order}</div>
-            </div>
-          ))}
-        </div>
+    <div className={styles.container}>
+      <div className={styles.title}>Список продуктов</div>
+      <div className={styles.list}>
+        {products.map((product) => {
+          const productStock = stocks.find(stock => stock.product_id === product.id);
+          const shop = productStock ? shops.find(shop => shop.id === productStock.shop_id) : null;
+          return (
+            <li key={product.id} className={styles.product_box}>
+              <div className={styles.box}>
+                <div className={styles.name}>{product.name}</div>
+                <div className={styles.description}>
+                  <div className={styles.text}>PLU: {product.plu}</div>
+                  <div className={styles.text}>ID: {product.id}</div>
+                  {productStock && shop && (
+                    <>
+                      <div className={styles.text}>Магазин ID: {shop.id}</div>
+                      <div className={styles.text}>Название магазина: {shop.name}</div>
+                      <div className={styles.text}>Количество на полке: {productStock.quantity_on_shelf}</div>
+                      <div className={styles.text}>Количество в заказе: {productStock.quantity_in_order}</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </div>
-        <div className={styles.pagination}>
+      <div className={styles.pagination}>
         <button
           onClick={() => {
             if (currentPage > 1) {

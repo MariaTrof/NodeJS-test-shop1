@@ -1,0 +1,47 @@
+.list {
+  list-style-type: none;
+  font-size: 20px;
+  font-weight: 400;
+  font-family: monospace;
+  color: rgb(0, 0, 0);
+  padding: 15px;
+  box-shadow: 1px 2px 5px 1px rgb(76, 75, 75);
+  background-color: rgb(240, 247, 247);
+  border-radius: 5px;
+  margin: 10px;
+}
+.title {
+  font-size: 30px;
+  font-weight: 600;
+  font-family: monospace;
+  color: rgb(0, 0, 0);
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.pagination {
+  display: flex;
+  padding: 10px;
+  margin: 5px;
+  .text_page {
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 500;
+  padding: 5px;
+}
+}
+.btn {
+  background-color: rgb(89, 115, 183);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 5px;
+  margin: 2px;
+}
+.btn:hover {
+  background-color: rgb(175, 175, 178);
+}

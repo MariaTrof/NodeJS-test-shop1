@@ -2,31 +2,51 @@ const { Stock, Product, Shop, ActionHistory } = require("../models/models");
 const ApiError = require("../error/ApiError");
 const ActionHistoryController = require("./actionController");
 
-class StockController {
-  async create(req, res, next) {
-    try {
-      const { id, product_id, shop_id, quantity_on_shelf, quantity_in_order } =
-        req.body;
+class StockController 
+{
+  async create ( req, res, next )
+  {
+    try
+    {
+      const { product_id, shop_id, quantity_on_shelf, quantity_in_order } = req.body;
 
-      const stocks = await Stock.create({
-        id,
+      // Проверка существования товара и магазина
+      const product = await Product.findByPk( product_id );
+      const shop = await Shop.findByPk( shop_id );
+
+      if ( !product )
+      {
+        return next( ApiError.notFound( "Товар не найден" ) );
+      }
+
+      if ( !shop )
+      {
+        return next( ApiError.notFound( "Магазин не найден" ) );
+      }
+
+      const stock = await Stock.create( {
         product_id,
         shop_id,
         quantity_on_shelf,
         quantity_in_order,
-      });
+      } );
 
-      await ActionHistoryController.addAction({
-        product_id,
-        shop_id,
-        action: "created",
-      });
+      await ActionHistoryController.addAction( {
+        product_id: product_id,
+        shop_id: shop_id,
+        action: "create",
+        stock_id: stock.id,
+      }, next );
 
-      return res.status(201).json(stocks);
-    } catch (error) {
-      next(ApiError.badRequest(error.message));
+      return res.json( stock );
+    } catch ( error )
+    {
+      console.error( "Ошибка при создании стока:", error );
+      next( ApiError.internal( error.message ) );
     }
   }
+
+
 
   async increase(req, res, next) {
     try {
@@ -46,10 +66,12 @@ class StockController {
         product_id: stocks.product_id,
         shop_id: stocks.shop_id,
         action: "increased",
+        stock_id: stocks.id,
       });
 
       return res.json(stocks);
     } catch (error) {
+      console.error("Error in create method:", error);
       next(ApiError.internal(error.message));
     }
   }
@@ -74,11 +96,15 @@ class StockController {
       );
       await stocks.save();
 
-      await ActionHistoryController.addAction({
-        product_id: stocks.product_id,
-        shop_id: stocks.shop_id,
-        action: "decreased",
-      });
+      await ActionHistoryController.addAction(
+        {
+          product_id: stocks.product_id,
+          shop_id: stocks.shop_id,
+          action: "decreased",
+          stock_id: stocks.id,
+        },
+        next
+      );
 
       return res.json(stocks);
     } catch (error) {
@@ -89,18 +115,7 @@ class StockController {
   async getAll(req, res, next) {
     try {
       const stocks = await Stock.findAll();
-      /*
-      include: [
-          { model: Product, as: "product" }, // Используем алиас "product"
-          { model: Shop, as: "shop" }, // Используем алиас "shop"
-          { model: ActionHistory, as: "action_histories" },
-        ], */
-
       return res.json(stocks);
-      /*  totalItems: stock.count,
-        totalPages: Math.ceil( stock.count / limit ),
-        currentPage: page,
-        items: stock.rows, */
     } catch (error) {
       next(ApiError.internal(error.message));
     }
@@ -142,6 +157,7 @@ class StockController {
         product_id: stocks.product_id,
         shop_id: stocks.shop_id,
         action: "deleted",
+        stock_id: stocks.id,
       });
 
       return res.json({ message: `Удалён остаток с id: ${id}` });

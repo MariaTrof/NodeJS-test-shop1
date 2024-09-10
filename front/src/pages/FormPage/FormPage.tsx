@@ -1,124 +1,83 @@
 import { FC, useState } from "react";
+import { useForm } from "react-hook-form";
 import styles from "./FormPage.module.scss";
+import axios from 'axios';
 
-const FormPage: FC = () => {
-  const [formData, setFormData] = useState({
-    productName: '',
-    productPLU: '',
-    productId: '',
-    shopId: '',
-    quantityOnShelf: '',
-    quantityInOrder: '',
-  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const FormPage: React.FC = () => {
+  const [isProductForm, setIsProductForm] = useState(true);
+  
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
+  const onSubmit = async (data: any) => {
     try {
-      // Сохранение продукта
-      const productResponse = await fetch('http://localhost:5000/api/products/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.productName,
-          plu: formData.productPLU,
-        }),
-      });
-
-      const productData = await productResponse.json();
-
-      // Сохранение запаса
-      const stockResponse = await fetch('http://localhost:5000/api/stock/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: productData.id,  // Если productData содержит id нового продукта
-          shop_id: formData.shopId,
-          quantity_on_shelf: formData.quantityOnShelf,
-          quantity_in_order: formData.quantityInOrder,
-        }),
-      });
-
-      const stockData = await stockResponse.json();
-      
-      if (productResponse.ok && stockResponse.ok) {
-        alert('Product and stock created successfully!');
-        setFormData({ productName: '', productPLU: '', productId: '', shopId: '', quantityOnShelf: '', quantityInOrder: '' });
-      } else {
-        alert(`Error: ${productData.error || stockData.error}`);
-      }
+      const endpoint = isProductForm ? 'http://localhost:5005/api/products' : 'http://localhost:5005/api/stock';
+      const response = await axios.post(endpoint, data);
+      console.log(`${isProductForm ? 'Product' : 'Stock'} создан:`, response.data);
     } catch (error) {
-      alert('An error occurred while creating product and stock.');
+      console.error(`Ошибка при создании ${isProductForm ? 'продукта' : 'стока'}:`, error);
     }
   };
 
   return (
     <div className={styles.container}>
-      <div className={styles.title}>Create Product:</div>
-      <div className={styles.box}>
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="productName"
-            placeholder="Product Name"
-            value={formData.productName}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          <input
-            type="text"
-            name="productPLU"
-            placeholder="Product PLU"
-            value={formData.productPLU}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          <input
-            type="text"
-            name="productId"
-            placeholder="Product ID"
-            value={formData.productId}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          <div className={styles.text}>Shop</div>
-          <input
-            type="text"
-            name="shopId"
-            placeholder="Shop ID"
-            value={formData.shopId}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          <div className={styles.text}>Stock</div>
-          <input
-            type="text"
-            name="quantityOnShelf"
-            placeholder="Quantity on Shelf"
-            value={formData.quantityOnShelf}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          <input
-            type="text"
-            name="quantityInOrder"
-            placeholder="Quantity In Order"
-            value={formData.quantityInOrder}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          <button type="submit" className={styles.btn}>Submit!</button>
-        </form>
-      </div>
+      <h1 className={styles.title}>{isProductForm ? 'Create Product' : 'Create Stock'}</h1>
+      
+      <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+        {isProductForm ? (
+          <>
+            <div>
+              <input placeholder="Product PLU "{...register('plu', { required: true })} className={styles.input}/>
+              {errors.plu && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+            <div>
+            
+              <input placeholder="Product Name"{...register('name', { required: true })} className={styles.input}/>
+              {errors.name && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+            <div>
+
+              <input placeholder="Shop Id"{...register('shopId', { required: true })} className={styles.input}/>
+              {errors.shopId && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+         
+          </>
+        ) : (
+          <>
+            <div>
+
+              <input placeholder="id" {...register('id', { required: true })} className={styles.input}/>
+              {errors.id && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+            <div>
+          
+              <input placeholder="Product Id" {...register('product_id', { required: true })} className={styles.input}/>
+              {errors.product_id && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+            <div>
+          
+              <input placeholder="Shop Id"{...register('shop_id', { required: true })} className={styles.input}/>
+              {errors.shop_id && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+            <div>
+     
+              <input type="number" placeholder="quantity on shelf"{...register('quantity_on_shelf', { required: true })} className={styles.input}/>
+              {errors.quantity_on_shelf && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+            <div>
+              <input type="number" placeholder="quantity in order"{...register('quantity_in_order', { required: true })} className={styles.input}/>
+              {errors.quantity_in_order && <div className={styles.text}>Это поле обязательно для заполнения</div>}
+            </div>
+          </>
+        )}
+        
+        <button type="submit" className={styles.btn}>{isProductForm ? 'SUBMIT' : 'SUBMIT'}</button>
+      </form>
+
+      <button onClick={() => setIsProductForm(!isProductForm)} className={styles.btn}>
+        {isProductForm ? 'Create Stock' : 'Create Product'}
+      </button>
     </div>
   );
 };

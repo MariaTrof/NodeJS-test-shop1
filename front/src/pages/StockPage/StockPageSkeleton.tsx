@@ -1,9 +1,7 @@
 import { FC } from "react";
 import ContentLoader from "react-content-loader";
 
-export interface IProductPageSkeleton {}
-
-const ProductPageSkeleton: FC<IProductPageSkeleton> = ({}) => {
+const StockPageSkeleton: FC = ({}) => {
   return (
     <ContentLoader
       speed={2}
@@ -30,6 +28,4 @@ const ProductPageSkeleton: FC<IProductPageSkeleton> = ({}) => {
   );
 };
 
-export default ProductPageSkeleton;
-
-//можно заменить на любой другой спинер загрузки или поменять под форму самой страницы
+export default StockPageSkeleton;

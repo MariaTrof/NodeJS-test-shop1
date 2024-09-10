@@ -1,14 +1,13 @@
+import ActionPage from "../pages/ActionPage/ActionPage";
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
 import FormPage from "../pages/FormPage/FormPage";
 import MainPage from "../pages/MainPage/MainPage";
 import ProductPage from "../pages/ProductPage/ProductPage";
-import StockPage from "../pages/StockPage/StockPage";
-
 
 export const publicRoutes = [
   {
-   path: "/",
-    element: <MainPage />, 
+    path: "/",
+    element: <MainPage />,
   },
   {
     path: "*",
@@ -16,21 +15,15 @@ export const publicRoutes = [
   },
   {
     path: "/form",
- element: <FormPage />,  
+    element: <FormPage />,
   },
   {
     path: "/products",
     element: <ProductPage />,
   },
 
-
- {
-   path: "/stock",
- element: <StockPage />,   
+  {
+    path: "/actions",
+    element: <ActionPage />,
   },
-
- // {
- //   path: "/actions",
- /* element: <ActionPage />,*/  
- // },
 ];

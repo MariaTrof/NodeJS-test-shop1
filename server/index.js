@@ -5,13 +5,17 @@ const sequelize = require("./db.js");
 const cors = require("cors");
 const router = require("./routes/router.js");
 const path = require("path");
-const bodyParser = require( "body-parser" );
 
-const PORT = process.env.PORT || 5000;
+
+const PORT = process.env.PORT || 5005;
 
 const app = express();
+app.use( ( err, req, res, next ) =>
+{
+  console.error( err ); // Вывод ошибки в консоль
+  next( err ); // Передача следующему обработчику ошибок
+} );
 
-app.use( bodyParser.json() );
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
