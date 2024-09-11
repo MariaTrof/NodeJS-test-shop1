@@ -1,9 +1,9 @@
 .app {
   background-color: rgb(177, 213, 220);
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 .content {
-  height: 110vh;
+  height: 125vh;
   background-color: rgb(238, 239, 239);
   padding: 20px 15px;
   border-radius: 5px;
@@ -44,7 +44,7 @@
   margin: 0 15px;
 }
 
-.link{
+.link {
   color: white;
   font-size: 18px;
   font-weight: 500;
@@ -81,7 +81,6 @@
   .head_content > * {
     margin: 5px 0;
   }
-
 }
 
 @media (max-width: 450px) {

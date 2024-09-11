@@ -1,6 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import ProductPageSkeleton from "./ProductPageSkeleton";
 import styles from "./ProductPage.module.scss";
+import ProductSort from "../../components/Sort/ProductSort";
 
 interface Product {
   id: number;
@@ -21,6 +22,7 @@ interface Shop {
   name: string;
 }
 
+
 const ProductPage: FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -31,12 +33,20 @@ const ProductPage: FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
 
+  const [sortBy, setSortBy] = useState<string>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const handleSortChange = (sortBy: string, order: 'asc' | 'desc') => {
+    setSortBy(sortBy);
+    setSortOrder(order);
+  };
+
   const updateLimit = () => {
     const width = window.innerWidth;
     if (width >= 1400) {
-      setLimit(5);
-    } else if (width >= 1200) {
       setLimit(4);
+    } else if (width >= 1200) {
+      setLimit(3);
     } else if (width >= 900) {
       setLimit(3);
     } else {
@@ -52,83 +62,86 @@ const ProductPage: FC = () => {
     };
   }, []);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:5005/api/products?limit=${limit}&page=${currentPage}`
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-      setProducts(data.items);
-      setTotalPages(data.totalPages);
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Неизвестная ошибка");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+   useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true); 
+      try {
+        console.log("Fetching products with limit: ", limit);
+        const response = await fetch(
+          `http://localhost:5005/api/products?limit=${limit}&page=${currentPage}`
+        );
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-  const fetchStocks = async () => {
-    try {
-      const response = await fetch(`http://localhost:5005/api/stock`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        setProducts(data.items);
+        setTotalPages(data.totalPages);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Неизвестная ошибка");
+      } finally {
+        setIsLoading(false);
       }
-      const data = await response.json();
-      setStocks(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Неизвестная ошибка");
-      }
-    }
-  };
+    };
 
-  const fetchShops = async () => {
-    try {
-      const response = await fetch(`http://localhost:5005/api/shops`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+    const fetchStocks = async () => {
+      try {
+        const response = await fetch(`http://localhost:5005/api/stock`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        setStocks(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Неизвестная ошибка");
       }
-      const data = await response.json();
-      setShops(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Неизвестная ошибка");
-      }
-    }
-  };
+    };
 
-  useEffect(() => {
+    const fetchShops = async () => {
+      try {
+        const response = await fetch(`http://localhost:5005/api/shops`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        setShops(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Неизвестная ошибка");
+      }
+    };
+
     fetchProducts();
     fetchStocks();
     fetchShops();
   }, [currentPage, limit]);
+ const sortedProducts = [...products].sort((a, b) => {
+    if (sortBy === 'name') {
+      return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    } else if (sortBy === 'plu') {
+      return sortOrder === 'asc' ? a.plu.localeCompare(b.plu) : b.plu.localeCompare(a.plu);
+    }
+    return 0;
+  });
 
-  if (isLoading) {
-    return <ProductPageSkeleton />;
-  }
+  const sortedStocks = [...stocks].sort((a, b) => {
+    // Сортировка по запасам
+    if (sortBy === 'quantity_on_shelf') {
+      return sortOrder === 'asc' ? a.quantity_on_shelf - b.quantity_on_shelf : b.quantity_on_shelf - a.quantity_on_shelf;
+    } else if (sortBy === 'quantity_in_order') {
+      return sortOrder === 'asc' ? a.quantity_in_order - b.quantity_in_order : b.quantity_in_order - a.quantity_in_order;
+    }
+    return 0;
+  });
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (isLoading) return <ProductPageSkeleton />;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className={styles.container}>
-      <div className={styles.title}>Список продуктов</div>
+      <div className={styles.title}>Product Page</div>
+      <ProductSort onSortChange={handleSortChange} />
       <div className={styles.list}>
-        {products.map((product) => {
-          const productStock = stocks.find(stock => stock.product_id === product.id);
-          const shop = productStock ? shops.find(shop => shop.id === productStock.shop_id) : null;
+        {sortedProducts.map((product) => {
+          const productStock = sortedStocks.find(
+            (stock) => stock.product_id === product.id
+          );
+          const shop = productStock
+            ? shops.find((shop) => shop.id === productStock.shop_id)
+            : null;
           return (
             <li key={product.id} className={styles.product_box}>
               <div className={styles.box}>
@@ -139,9 +152,15 @@ const ProductPage: FC = () => {
                   {productStock && shop && (
                     <>
                       <div className={styles.text}>Магазин ID: {shop.id}</div>
-                      <div className={styles.text}>Название магазина: {shop.name}</div>
-                      <div className={styles.text}>Количество на полке: {productStock.quantity_on_shelf}</div>
-                      <div className={styles.text}>Количество в заказе: {productStock.quantity_in_order}</div>
+                      <div className={styles.text}>
+                        Название магазина: {shop.name}
+                      </div>
+                      <div className={styles.text}>
+                        Количество на полке: {productStock.quantity_on_shelf}
+                      </div>
+                      <div className={styles.text}>
+                        Количество в заказе: {productStock.quantity_in_order}
+                      </div>
                     </>
                   )}
                 </div>

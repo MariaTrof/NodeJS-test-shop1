@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: monospace;
+  color: rgb(0, 0, 0);
+}
+.text {
+  margin: 5px;
+  padding: 5px;
+}
+.form {
+  background-color: white;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 5px;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: monospace;
+}
+
+@media (max-width: 940px) {
+  .container {
+    flex-direction: column;
+  }
+}
