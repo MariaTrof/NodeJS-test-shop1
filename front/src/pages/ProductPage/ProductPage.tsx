@@ -22,7 +22,6 @@ interface Shop {
   name: string;
 }
 
-
 const ProductPage: FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -31,12 +30,12 @@ const ProductPage: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(5);
 
-  const [sortBy, setSortBy] = useState<string>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<string>("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const handleSortChange = (sortBy: string, order: 'asc' | 'desc') => {
+  const handleSortChange = (sortBy: string, order: "asc" | "desc") => {
     setSortBy(sortBy);
     setSortOrder(order);
   };
@@ -62,15 +61,16 @@ const ProductPage: FC = () => {
     };
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchProducts = async () => {
-      setIsLoading(true); 
+      setIsLoading(true);
       try {
         console.log("Fetching products with limit: ", limit);
         const response = await fetch(
           `http://localhost:5005/api/products?limit=${limit}&page=${currentPage}`
         );
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`HTTP error! Status: ${response.status}`);
 
         const data = await response.json();
         setProducts(data.items);
@@ -85,7 +85,8 @@ const ProductPage: FC = () => {
     const fetchStocks = async () => {
       try {
         const response = await fetch(`http://localhost:5005/api/stock`);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         setStocks(data);
       } catch (error) {
@@ -96,7 +97,8 @@ const ProductPage: FC = () => {
     const fetchShops = async () => {
       try {
         const response = await fetch(`http://localhost:5005/api/shops`);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         setShops(data);
       } catch (error) {
@@ -108,21 +110,29 @@ const ProductPage: FC = () => {
     fetchStocks();
     fetchShops();
   }, [currentPage, limit]);
- const sortedProducts = [...products].sort((a, b) => {
-    if (sortBy === 'name') {
-      return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-    } else if (sortBy === 'plu') {
-      return sortOrder === 'asc' ? a.plu.localeCompare(b.plu) : b.plu.localeCompare(a.plu);
+  const sortedProducts = [...products].sort((a, b) => {
+    if (sortBy === "name") {
+      return sortOrder === "asc"
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    } else if (sortBy === "plu") {
+      return sortOrder === "asc"
+        ? a.plu.localeCompare(b.plu)
+        : b.plu.localeCompare(a.plu);
     }
     return 0;
   });
 
   const sortedStocks = [...stocks].sort((a, b) => {
     // Сортировка по запасам
-    if (sortBy === 'quantity_on_shelf') {
-      return sortOrder === 'asc' ? a.quantity_on_shelf - b.quantity_on_shelf : b.quantity_on_shelf - a.quantity_on_shelf;
-    } else if (sortBy === 'quantity_in_order') {
-      return sortOrder === 'asc' ? a.quantity_in_order - b.quantity_in_order : b.quantity_in_order - a.quantity_in_order;
+    if (sortBy === "quantity_on_shelf") {
+      return sortOrder === "asc"
+        ? a.quantity_on_shelf - b.quantity_on_shelf
+        : b.quantity_on_shelf - a.quantity_on_shelf;
+    } else if (sortBy === "quantity_in_order") {
+      return sortOrder === "asc"
+        ? a.quantity_in_order - b.quantity_in_order
+        : b.quantity_in_order - a.quantity_in_order;
     }
     return 0;
   });
@@ -143,25 +153,41 @@ const ProductPage: FC = () => {
             ? shops.find((shop) => shop.id === productStock.shop_id)
             : null;
           return (
-            <li key={product.id} className={styles.product_box}>
+            <li key={product?.id} className={styles.product_box}>
               <div className={styles.box}>
-                <div className={styles.name}>{product.name}</div>
+                <div className={styles.name}>
+                  {product ? product.name : "Нет данных"}
+                </div>
                 <div className={styles.description}>
-                  <div className={styles.text}>PLU: {product.plu}</div>
-                  <div className={styles.text}>ID: {product.id}</div>
-                  {productStock && shop && (
+                  <div className={styles.text}>
+                    PLU: {product ? product.plu : "Нет данных"}
+                  </div>
+                  <div className={styles.text}>
+                    ID: {product ? product.id : "Нет данных"}
+                  </div>
+                  {productStock && shop ? (
                     <>
                       <div className={styles.text}>Магазин ID: {shop.id}</div>
                       <div className={styles.text}>
                         Название магазина: {shop.name}
                       </div>
                       <div className={styles.text}>
-                        Количество на полке: {productStock.quantity_on_shelf}
+                        Количество на полке:{" "}
+                        {productStock.quantity_on_shelf != null
+                          ? productStock.quantity_on_shelf
+                          : "Нет данных"}
                       </div>
                       <div className={styles.text}>
-                        Количество в заказе: {productStock.quantity_in_order}
+                        Количество в заказе:{" "}
+                        {productStock.quantity_in_order != null
+                          ? productStock.quantity_in_order
+                          : "Нет данных"}
                       </div>
                     </>
+                  ) : (
+                    <div className={styles.text}>
+                      Нет данных о магазине или запасах
+                    </div>
                   )}
                 </div>
               </div>

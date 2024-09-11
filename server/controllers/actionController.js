@@ -12,11 +12,11 @@ class ActionHistoryController {
         action,
         stock_id,
         page = 1,
-        limit = 10,
+        limit = 5,
       } = req.query;
 
       page = +page || 1;
-      limit = +limit || 10;
+      limit = +limit || 5;
       const offset = (page - 1) * limit;
       console.log(offset, page, limit);
 
@@ -65,38 +65,6 @@ class ActionHistoryController {
       next(ApiError.internal(error.message));
     }
   }
-
-  async addAction ( data )
-  {
-    try
-    {
-      const { product_id, shop_id, action, stock_id } = data;
-
-      console.log( "Данные для добавления действия:", {
-        product_id,
-        shop_id,
-        action,
-        stock_id,
-      } );
-
-      const actionHistory = await ActionHistory.create( {
-        product_id: product_id || null,
-        shop_id: shop_id || null,
-        action: action || "unknown", // Задаем значение по умолчанию для action
-        stock_id: stock_id || null,
-        action_date: new Date(),
-      } );
-
-      return actionHistory;
-    } catch ( error )
-    {
-      console.error( "Ошибка в методе addAction:", error );
-      throw ApiError.badRequest(
-        "Ошибка при добавлении действия: " + error.message
-      );
-    }
-  }
-
   async addAction ( data )
   {
     try

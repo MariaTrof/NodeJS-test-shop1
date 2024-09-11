@@ -1,5 +1,5 @@
 import { FC } from "react";
-import styles from "./ProductSort.module.scss";
+import styles from "./Sort.module.scss";
 
 interface SortProps {
   onSortChange: (sortBy: string, order: 'asc' | 'desc') => void;

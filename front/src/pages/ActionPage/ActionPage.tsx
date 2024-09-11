@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./ActionPage.module.scss";
-import axios from "axios";
 import ActionPageSkeleton from "./ActionPageSkeleton";
+import ActionSort from "../../components/Sort/ActionSort";
 
 interface Product {
   id: number;
@@ -12,7 +12,6 @@ interface Product {
 interface Shop {
   id: number;
   name: string;
- 
 }
 
 interface ActionHistory {
@@ -29,33 +28,40 @@ const ActionPage: React.FC = () => {
   const [actionHistories, setActionHistories] = useState<ActionHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
-    const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(4);
+  const [sortBy, setSortBy] = useState<string>("shop_id"); // По умолчанию сортировка по shop_id
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+const handleSortChange = (sortBy: string, order: "asc" | "desc") => {
+  console.log("Сортировка по:", sortBy, "направление", order);
+  setSortBy(sortBy);
+  setSortOrder(order);
+};
 
-   const updateLimit = () => {
+  const updateLimit = () => {
     const width = window.innerWidth;
     if (width >= 1400) {
-      setLimit(6);
+      setLimit(3);
     } else if (width >= 1200) {
-      setLimit(5);
+      setLimit(3);
     } else if (width >= 900) {
-      setLimit(4); 
+      setLimit(2);
     } else {
       setLimit(2);
     }
   };
 
   useEffect(() => {
-        updateLimit();
+    updateLimit();
     window.addEventListener("resize", updateLimit);
     return () => {
       window.removeEventListener("resize", updateLimit);
     };
   }, []);
 
-const fetchActionHistories = async () => {
+  const fetchActionHistories = async () => {
     try {
       const response = await fetch(
         `http://localhost:5005/api/actions?limit=${limit}&page=${currentPage}`
@@ -81,6 +87,23 @@ const fetchActionHistories = async () => {
     fetchActionHistories();
   }, [currentPage, limit]);
 
+  const sortedActionHistories = [...actionHistories].sort((a, b) => {
+    let comparison = 0;
+
+    if (sortBy === "action") {
+      comparison = a.action.localeCompare(b.action);
+    } else if (sortBy === "action_date") {
+      comparison =
+        new Date(a.action_date).getTime() - new Date(b.action_date).getTime();
+    } else if (sortBy === "shop_id") {
+      comparison = a.shop_id - b.shop_id;
+    } else if (sortBy === "plu") {
+      comparison = a.product.plu.localeCompare(b.product.plu);
+    }
+
+    return sortOrder === "asc" ? comparison : -comparison;
+  });
+
   if (isLoading) {
     return <ActionPageSkeleton />;
   }
@@ -92,17 +115,24 @@ const fetchActionHistories = async () => {
   return (
     <div>
       <div className={styles.title}>Action History</div>
+      <ActionSort onSortChange={handleSortChange} />
+
       <ul>
-        {actionHistories.map((action) => (
+        {sortedActionHistories.map((action) => (
           <li key={action.id} className={styles.list}>
             <strong>Действие:</strong> {action.action} <br />
-            <strong>Продукт:</strong> {action.product.name} <br />
-            <strong>Магазин:</strong> {action.shop.name} <br />
+            <strong>Продукт:</strong>{" "}
+            {action.product ? action.product.name : "Нет данных"} <br />
+            <strong>PLU:</strong>{" "}
+            {action.product ? action.product.plu : "Нет данных"} <br />
+            <strong>Магазин:</strong>{" "}
+            {action.shop ? action.shop.name : "Нет данных"} <br />
             <strong>Дата действия:</strong> {action.action_date} <br />
           </li>
         ))}
       </ul>
-       <div className={styles.pagination}>
+
+      <div className={styles.pagination}>
         <button
           onClick={() => {
             if (currentPage > 1) {

@@ -7,7 +7,7 @@ class ProductController {
   {
     try
     {
-      const { plu, name, shop_id } = req.body; // Добавлено shop_id
+      const { plu, name, shop_id } = req.body;
       const product = await Product.create( {
         plu,
         name,
@@ -43,7 +43,7 @@ class ProductController {
     try {
       let { limit, page, name, plu } = req.query;
       page = +page || 1;
-      limit = +limit || 10;
+      limit = +limit || 5;
       const offset = (page - 1) * limit;
 
       const whereConditions = {};
